@@ -34,10 +34,10 @@ ARCGIS_PAGE_SIZE = 2000
 ZENODO_BASE_URL = "https://zenodo.org/api"
 ZENODO_TOKEN = os.getenv("ZENODO_TOKEN")
 
-# --- Ensure output dirs exist ---
-
+# --- Harvard Dataverse ---
+DATAVERSE_BASE_URL = "https://dataverse.harvard.edu/api"
+DATAVERSE_TOKEN = os.getenv("DATAVERSE_TOKEN")
+DATAVERSE_ALIAS = os.getenv("DATAVERSE_ALIAS")
 
 def init_dirs():
-    for d in PHASE_DIRS.values():
-        d.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
