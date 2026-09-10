@@ -154,3 +154,19 @@ These are EPA-hosted environmental justice context layers unique to this tool. N
 | `eb19135c2eb5429c9703bb460fbb644a` | 2019 AirToxScreen Neurological Dashboard |
 | `f529c71873214db794a53dbcf165f2e6` | 2018 AirToxScreen Cancer Risk Dashboard |
 | `fb6e6b70c7e2480c8ef88cc8e9c061ac` | 2017 AirToxScreen Cancer Risk Dashboard |
+
+---
+
+## Post-Discovery Notes (2026-09-10)
+
+**2020 cancer risk FeatureServer not in webmap operationalLayers**
+The `Cancer_Risk_2020/FeatureServer/0` layer is not referenced in the 2020 webmap's `operationalLayers` — the webmap only contains the tiled `MapServer` version for display performance. The vector data must be added explicitly in any traversal script and will not be discovered automatically via webmap inspection.
+
+**Risk breakdown sublayer naming collision**
+Both `2019 Risk by Air Toxics` and `2019 Risk by Source Type` contain a sublayer named `NATA19AC_CRP_CRSG` with identical feature counts (73,711). These may be the same underlying data served from two different services. Verify during Phase 4 extraction by comparing field schemas and sample values.
+
+**Identical feature counts across 2017/2018/2019 cancer risk layers**
+All three annual cancer risk layers report exactly 73,711 features. This is either the stable census tract count across those years or the same layer being served for all three vintages. Verify during Phase 4 by comparing GEOID values and risk estimate distributions across years.
+
+**Tribal boundary layers absent from 2020 tool**
+The four tribal boundary layers (Alaskan Tribal Areas, Alaska Native Allotments, Off-Reservation Trust Lands, American Indian Reservations) appear across all 2017-2019 maps but are not present in the 2020 tool. Unknown whether this was intentional or an oversight during the 2020 rebuild.

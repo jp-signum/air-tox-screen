@@ -12,7 +12,7 @@ EPA's AirToxScreen is a national air toxics screening assessment tool providing 
 - Methodology documentation and technical support documents
 - Visual snapshots of the interactive tool
 
-All captured data is archived to Zenodo with SHA-256 checksums and a full provenance manifest.
+All captured data is archived to Zenodo and Harvard Dataverse with SHA-256 checksums and a full provenance manifest.
 
 ## Phases
 
@@ -35,7 +35,7 @@ All captured data is archived to Zenodo with SHA-256 checksums and a full proven
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # add Zenodo token
+cp .env.example .env  # add Zenodo and Dataverse tokens
 ```
 
 ## Output
