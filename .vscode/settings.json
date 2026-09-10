@@ -1,3 +1,6 @@
 {
-  "python-envs.defaultEnvManager": "ms-python.python:system"
+  "python.defaultInterpreterPath": "/Users/pjm-bkny/dev/air-tox-screen/archiver/venv/bin/python",
+  "flake8.args": [
+    "--max-line-length=120"
+  ]
 }
