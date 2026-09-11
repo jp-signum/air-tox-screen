@@ -113,7 +113,7 @@ The `Cancer/ByPollutant/` and `Cancer/BySource/` directories contain block-level
 
 ---
 
-## Combined Phase 0 Summary
+## Combined Discovery Summary
 
 | Source | Files | Size |
 | -------- | ------- | ------ |
