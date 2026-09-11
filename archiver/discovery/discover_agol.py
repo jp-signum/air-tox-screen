@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import requests
 from tenacity import retry, wait_exponential, stop_after_attempt, before_sleep_log
 
-from config import AGOL_REST_BASE, AGOL_ITEM_2020, AGOL_ITEM_2017, PHASE_DIRS, init_dirs
+from config import AGOL_REST_BASE, AGOL_ITEM_2020, AGOL_ITEM_2017, MANIFESTS_DIR
 from utils.logger import get_logger
 from utils.manifest import save_manifest
 
@@ -279,8 +279,7 @@ def discover_2017_2019() -> dict:
 # --- Main ---
 
 if __name__ == "__main__":
-    init_dirs()
-    PHASE_DIRS[0].mkdir(parents=True, exist_ok=True)
+    MANIFESTS_DIR.mkdir(parents=True, exist_ok=True)
 
     results = {
         "captured_at": datetime.now(timezone.utc).isoformat(),
@@ -295,5 +294,5 @@ if __name__ == "__main__":
     )
     logger.info(f"Total layers discovered: {total}")
 
-    out = save_manifest(results, PHASE_DIRS[0], "agol_discovery")
+    out = save_manifest(results, MANIFESTS_DIR, "agol_discovery")
     logger.info(f"Manifest saved to {out}")

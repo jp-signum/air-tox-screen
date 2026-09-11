@@ -6,16 +6,14 @@ load_dotenv()
 
 # --- Base paths ---
 BASE_DIR = Path(os.getenv("BASE_OUTPUT_DIR"))
-PHASE_DIRS = {
-    0: BASE_DIR / "phase0_manifest",
-    1: BASE_DIR / "phase1_docs",
-    2: BASE_DIR / "phase2_static",
-    3: BASE_DIR / "phase3_ftp",
-    4: BASE_DIR / "phase4_arcgis",
-    5: BASE_DIR / "phase5_visual",
-    6: BASE_DIR / "phase6_upload",
-}
+MANIFESTS_DIR = BASE_DIR / "manifests"
 LOGS_DIR = BASE_DIR / "logs"
+
+# --- Output directories ---
+EPA_PAGES_DIR = BASE_DIR / "epa-pages"
+EPA_FILES_DIR = BASE_DIR / "epa-files"
+FTP_DIR = BASE_DIR / "ftp-mirror"
+AGOL_DIR = BASE_DIR / "agol-layers"
 
 # --- EPA ---
 EPA_BASE_URL = "https://www.epa.gov"
@@ -38,6 +36,7 @@ ZENODO_TOKEN = os.getenv("ZENODO_TOKEN")
 DATAVERSE_BASE_URL = "https://dataverse.harvard.edu/api"
 DATAVERSE_TOKEN = os.getenv("DATAVERSE_TOKEN")
 DATAVERSE_ALIAS = os.getenv("DATAVERSE_ALIAS")
+
 
 def init_dirs():
     LOGS_DIR.mkdir(parents=True, exist_ok=True)

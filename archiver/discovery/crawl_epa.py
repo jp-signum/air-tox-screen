@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_exponential, stop_after_attempt, before_sleep_log
 
-from config import EPA_AIRTOXSCREEN_URL, PHASE_DIRS, init_dirs
+from config import EPA_AIRTOXSCREEN_URL, MANIFESTS_DIR
 from utils.logger import get_logger
 from utils.manifest import save_manifest
 
@@ -113,8 +113,7 @@ def crawl(start_url: str) -> tuple[list[dict], list[str]]:
 
 
 if __name__ == "__main__":
-    init_dirs()
-    PHASE_DIRS[0].mkdir(parents=True, exist_ok=True)
+    MANIFESTS_DIR.mkdir(parents=True, exist_ok=True)
 
     files, pages = crawl(EPA_AIRTOXSCREEN_URL)
 
@@ -127,5 +126,5 @@ if __name__ == "__main__":
         "files": files,
     }
 
-    out = save_manifest(manifest, PHASE_DIRS[0], "epa_crawl")
+    out = save_manifest(manifest, MANIFESTS_DIR, "epa_crawl")
     logger.info(f"Manifest saved to {out}")
