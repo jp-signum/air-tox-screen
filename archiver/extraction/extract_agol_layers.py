@@ -39,11 +39,35 @@ def query_page(url: str, offset: int) -> dict:
     return response.json()
 
 
+@retry(
+    wait=wait_exponential(multiplier=2, min=4, max=60),
+    stop=stop_after_attempt(5),
+    before_sleep=before_sleep_log(logger, logging.WARNING)
+)
+def query_page_by_range(url: str, start_oid: int, end_oid: int) -> dict:
+    params = {
+        "where": f"OBJECTID >= {start_oid} AND OBJECTID <= {end_oid}",
+        "outFields": "*",
+        "f": "geojson",
+    }
+    response = requests.get(f"{url}/query", params=params, timeout=60)
+    response.raise_for_status()
+    time.sleep(0.25)
+    return response.json()
+
+
 def get_live_count(url: str) -> int:
     params = {"where": "1=1", "returnCountOnly": "true", "f": "json"}
     response = requests.get(f"{url}/query", params=params, timeout=30)
     response.raise_for_status()
     return response.json().get("count", 0)
+
+
+def get_max_record_count(url: str) -> int:
+    params = {"f": "json"}
+    response = requests.get(url, params=params, timeout=30)
+    response.raise_for_status()
+    return response.json().get("maxRecordCount", PAGE_SIZE)
 
 
 def features_to_geodataframe(features: list) -> gpd.GeoDataFrame:
@@ -121,34 +145,45 @@ def safe_filename(layer: dict, fallback_year: str = "unknown") -> str:
     return name.strip("_")
 
 
+def get_oid_range(url: str) -> tuple[int, int]:
+    params = {
+        "where": "1=1",
+        "outStatistics": '[{"statisticType":"min","onStatisticField":"OBJECTID","outStatisticFieldName":"min_oid"},{"statisticType":"max","onStatisticField":"OBJECTID","outStatisticFieldName":"max_oid"}]',
+        "f": "json"
+    }
+    response = requests.get(f"{url}/query", params=params, timeout=30)
+    response.raise_for_status()
+    stats = response.json().get("features", [{}])[0].get("attributes", {})
+    return stats["min_oid"], stats["max_oid"]
+
+
 def write_large_layer(url: str, live_count: int, parquet_path: Path) -> int:
     import shutil
+
+    min_oid, max_oid = get_oid_range(url)
+    logger.info(f"  OID range: {min_oid} — {max_oid}")
 
     chunk_dir = parquet_path.parent / f"{parquet_path.stem}_chunks"
     chunk_dir.mkdir(parents=True, exist_ok=True)
 
     extracted = 0
-    offset = 0
     chunk_num = 0
 
     try:
-        while True:
-            page = query_page(url, offset)
-            features = page.get("features", [])
-            if not features:
-                break
+        for start_oid in range(min_oid, max_oid + 1, PAGE_SIZE):
+            end_oid = min(start_oid + PAGE_SIZE - 1, max_oid)
 
-            gdf_chunk = features_to_geodataframe(features)
-            chunk_path = chunk_dir / f"chunk_{chunk_num:04d}.parquet"
-            gdf_chunk.to_parquet(chunk_path, index=False)
+            page = query_page_by_range(url, start_oid, end_oid)
+            features = page.get("features", [])
+
+            if features:
+                gdf_chunk = features_to_geodataframe(features)
+                chunk_path = chunk_dir / f"chunk_{chunk_num:04d}.parquet"
+                gdf_chunk.to_parquet(chunk_path, index=False)
+                chunk_num += 1
 
             extracted += len(features)
-            chunk_num += 1
             logger.info(f"  [{extracted:,}/{live_count:,}] chunk {chunk_num} written")
-
-            offset += PAGE_SIZE
-            if len(features) < PAGE_SIZE:
-                break
 
         logger.info(f"  Concatenating {chunk_num} chunks...")
         chunks = [gpd.read_parquet(chunk_dir / f"chunk_{i:04d}.parquet") for i in range(chunk_num)]
@@ -169,6 +204,7 @@ def write_small_layer(
     geojson_path: Path | None,
 ) -> int:
     """Accumulate small layer in memory, write Parquet and optionally GeoJSON."""
+    max_count = get_max_record_count(url)
     all_features = []
     offset = 0
 
@@ -179,8 +215,8 @@ def write_small_layer(
             break
         all_features.extend(features)
         logger.info(f"  [{len(all_features):,}/{live_count:,}] fetched")
-        offset += PAGE_SIZE
-        if len(features) < PAGE_SIZE:
+        offset += len(features)
+        if len(features) < max_count:
             break
 
     gdf = features_to_geodataframe(all_features)
